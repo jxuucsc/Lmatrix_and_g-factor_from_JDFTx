@@ -1,0 +1,18 @@
+Purposes:
+Compute orbital angular momentum matrix L and analyse g factors based on JDFTx code
+
+
+Lmatrix_gfactor_from_pmatrix.py:
+The script computing L and g factor.
+The script needs to specify some input paramters inside.
+See more details inside the script.
+
+
+example.tar.gz:
+It contains an MoS2 example of using Lmatrix_gfactor_from_pmatrix.py
+It contains a README file for itself
+
+
+L_VS_bands.png:
+Calculated g factors (diagonal elements of the matrix) along z axis
+of 4 bands as a function of number of bands
