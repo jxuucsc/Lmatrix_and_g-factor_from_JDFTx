@@ -14,5 +14,5 @@ It contains a README file for itself
 
 
 L_VS_bands.png:
-Calculated g factors (diagonal elements of the matrix) along z axis of 4 bands as a function of number of bands.
+Calculated expectation values of L (diagonal elements of matrix L) along z axis of 4 bands as a function of number of bands.
 The results agree with Fig. 4 of Phys. Rev. B 101, 235408 (2020)

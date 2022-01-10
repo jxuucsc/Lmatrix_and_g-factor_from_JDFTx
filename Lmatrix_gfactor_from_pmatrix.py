@@ -64,7 +64,7 @@ L.tofile("totalE.L")
 
 print('Analyse g factor for bands in range:',bstart_g,bend_g)
 nb_g = bend_g - bstart_g
-S = np.fromfile(dir_s+"totalE.S",np.complex128).reshape(nk_s,3,nb_s,nb_s)
+S = 0.5 * np.fromfile(dir_s+"totalE.S",np.complex128).reshape(nk_s,3,nb_s,nb_s) # JDFTx spin matrix is <1|pauli|2> without 0.5 factor
 Sinv = LA.inv(S)
 g = np.einsum("kiab,kibc->kiac", L[:,:,bstart_g:bend_g,0:nb_s], Sinv[:,:,0:nb_s,bstart_g:bend_g])
 twoI = 2*np.eye(nb_g)
