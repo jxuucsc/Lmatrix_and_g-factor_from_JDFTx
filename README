@@ -3,7 +3,10 @@ Compute orbital angular momentum matrix L and analyse g factors based on JDFTx c
 
 
 Lmatrix_gfactor_from_pmatrix.py:
-The script computing L and g factor.
+The script computing L and g-factor related quantities including
+energy changes of specific bands at different k points induced by B 
+and expectation values of L, S and L+gs*S with gs=2.0023.
+
 The script needs to specify some input paramters inside.
 See more details inside the script.
 
@@ -14,5 +17,5 @@ It contains a README file for itself
 
 
 L_VS_bands.png:
-Calculated expectation values of L (diagonal elements of matrix L) along z axis of 4 bands as a function of number of bands.
+Calculated expectation values of |L| (diagonal elements of matrix L) along z axis of 4 bands as a function of number of bands.
 The results agree with Fig. 4 of Phys. Rev. B 101, 235408 (2020)

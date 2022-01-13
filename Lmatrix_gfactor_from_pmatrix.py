@@ -18,6 +18,8 @@ dir_s = "../" # directory having totalE.S with less bands
               # band number is read from dir_s+'/totalE.out'
 bstart_g = 24 # band range for g factor analysis
 bend_g = 28 #
+Bmag = 1 # The magnitude of test magnetic field in Tesla
+         # from energy changes induced by a magnetic field, we can analyse g factors
 
 # Read totalE.out
 def read_totalE_out(dir_):
@@ -37,7 +39,7 @@ if nk != nk_s:
 print("number of bands for spin: ",nb_s)
 
 # Read momentum matrix p and energies e
-p = np.fromfile(dir_p+"totalE.momenta",np.complex128).reshape(nk,3,nb_p,nb_p)
+p = np.fromfile(dir_p+"totalE.momenta",np.complex128).reshape(nk,3,nb_p,nb_p).swapaxes(2,3)
 e = np.fromfile(dir_p+"totalE.eigenvals",np.float64).reshape(nk,nb_p)
 
 # r_mn = -i p_mn / (e_m - e_n) with e_m - e_m != 0
@@ -59,36 +61,49 @@ L.tofile("totalE.L")
 
 
 # Analysis g factor
-# L + 2S = g S. So g = 2 + L S^-1 is a vector matrix
-# Note that if g is not proportional to Identity, g will depend on unitary rotation
+# Define g factor for band 1 and 2 as 
+# 0.5 g_{i,12} B_i = Delta(E_2 - E_1)
+# = [E_2(B_i) - E_1(B_i)] - [E_2(B_i=0) - E_1(B_i=0)] (suppose the band ordering is not changed),
+# so g_{i,12} = Delta(E_2 - E_1) / (0.5 * B_i).
+# In 1st order perturbation, g_{i,12} = (L+gs*S)^{exp}_{i,2} - (L+gs*S)^{exp}_{i,1},
+# where exp means expectation value.
+# Therefore, it is good to know E(B_i) and (L+gs*S)^{exp}_i
 
 print('Analyse g factor for bands in range:',bstart_g,bend_g)
-nb_g = bend_g - bstart_g
-S = 0.5 * np.fromfile(dir_s+"totalE.S",np.complex128).reshape(nk_s,3,nb_s,nb_s) # JDFTx spin matrix is <1|pauli|2> without 0.5 factor
-Sinv = LA.inv(S)
-g = np.einsum("kiab,kibc->kiac", L[:,:,bstart_g:bend_g,0:nb_s], Sinv[:,:,0:nb_s,bstart_g:bend_g])
-twoI = 2*np.eye(nb_g)
-g = g + twoI[None,None,:]
 
-# Output diagonal elements of L and g factor matrices
-Ldiag = np.einsum("kdii->kdi", L[:,:,bstart_g:bend_g,bstart_g:bend_g]).real
-gdiag = np.einsum("kdii->kdi", g).real
-with open('Ldiag_gdiag.out', 'w') as f:
-  f.write('#Diagonal elements of L and g at different k\n')
-  f.write('#Band range: %4s %4s\n' % (bstart_g, bend_g))
-  f.write('#Along x:\n')
-  np.savetxt(f, np.concatenate((Ldiag[:,0], gdiag[:,0]), axis=1), fmt='%.3f')
-  f.write('#Along y:\n')
-  np.savetxt(f, np.concatenate((Ldiag[:,1], gdiag[:,1]), axis=1), fmt='%.3f')
-  f.write('#Along z:\n')
-  np.savetxt(f, np.concatenate((Ldiag[:,2], gdiag[:,2]), axis=1), fmt='%.3f')
+S = 0.5 * np.fromfile(dir_s+"totalE.S",np.complex128).reshape(nk_s,3,nb_s,nb_s).swapaxes(2,3) # JDFTx spin matrix is <1|pauli|2> without 0.5 factor
+Bmag = Bmag / 2.3505175675871e5 # convert to atomic unit
 
-# Output g factor matrices
-g = g.reshape(nk_s,3,-1)
-with open('gfac_mat.out', 'w') as f:
-  f.write('#Along x:\n')
-  np.savetxt(f,g[:,0],fmt='%.7e')
-  f.write('#Along y:\n')
-  np.savetxt(f,g[:,1],fmt='%.7e')
-  f.write('#Along z:\n')
-  np.savetxt(f,g[:,2],fmt='%.7e')
+f_de = open("energy_change_Bext.out", "w")
+f_de.write('#Energy changes induced by Bext at different k divided by 0.5 * B_i\n')
+f_de.write('#g factor for band 1 and 2 is g_{i,12} = [ Delta E_2(B_i) - Delta E_1(B_i) ] / (0.5 * B_i)\n')
+f_de.write('#Band range: %4s %4s\n' % (bstart_g, bend_g))
+f_AM_diag = open("angular_momenta_diag.out", "w")
+f_AM_diag.write('#Diagonal elements of L, S and L+gs*S at different k with gs=2.0023\n')
+f_AM_diag.write('#g factor for band 1 and 2 is g_{i,12} = (L+gs*S)^{exp}_{i,2} - (L+gs*S)^{exp}_{i,1}\n')
+f_AM_diag.write('#Band range: %4s %4s\n' % (bstart_g, bend_g))
+s_dir = ['x','y','z']
+
+for idir in range(3): # loop on x,y,z
+  gs = 2.0023193043625635
+  f_AM_diag.write('#Along '+s_dir[idir]+':\n')
+  f_de.write('#Along '+s_dir[idir]+':\n')
+  
+  # Apply a magnetic field (suppose the band ordering is not changed)
+  H = 0.5 * Bmag * (L[:,idir] + gs*S[:,idir]) # Total angular momentum
+  for ik in range(nk):
+    for ib in range(nb_s):
+      H[ik,ib,ib] = H[ik,ib,ib] + e[ik,ib]
+  ei,Ui = LA.eigh(H) # new eigenvalues and eigenvectors of Hamiltonian H(Bi)
+  
+  # Output energy changes induced by Bext
+  dei = (ei[:,bstart_g:bend_g] - e[:,bstart_g:bend_g]) / (0.5*Bmag) # energy differences multiplied by 1 / (0.5 * B_i)
+  np.savetxt(f_de, dei, fmt='%.4f')
+  
+  # Compute new L and S matrices and output diagonal elements of them and L+gs*S matrix
+  Li_diag = np.einsum("kba,kbc,kca->ka", Ui.conj(), L[:,idir], Ui)[:,bstart_g:bend_g].real
+  Si_diag = np.einsum("kba,kbc,kca->ka", Ui.conj(), S[:,idir], Ui)[:,bstart_g:bend_g].real
+  np.savetxt(f_AM_diag, np.concatenate((Li_diag, Si_diag, Li_diag+gs*Si_diag), axis=1), fmt='%.4f')
+  
+f_de.close()
+f_AM_diag.close()
