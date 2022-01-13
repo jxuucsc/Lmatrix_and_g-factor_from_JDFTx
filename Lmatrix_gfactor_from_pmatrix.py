@@ -39,7 +39,7 @@ if nk != nk_s:
 print("number of bands for spin: ",nb_s)
 
 # Read momentum matrix p and energies e
-p = np.fromfile(dir_p+"totalE.momenta",np.complex128).reshape(nk,3,nb_p,nb_p).swapaxes(2,3)
+p = np.fromfile(dir_p+"totalE.momenta",np.complex128).reshape(nk,3,nb_p,nb_p).swapaxes(2,3) # from Fortran to C
 e = np.fromfile(dir_p+"totalE.eigenvals",np.float64).reshape(nk,nb_p)
 
 # r_mn = -i p_mn / (e_m - e_n) with e_m - e_m != 0
@@ -71,7 +71,8 @@ L.tofile("totalE.L")
 
 print('Analyse g factor for bands in range:',bstart_g,bend_g)
 
-S = 0.5 * np.fromfile(dir_s+"totalE.S",np.complex128).reshape(nk_s,3,nb_s,nb_s).swapaxes(2,3) # JDFTx spin matrix is <1|pauli|2> without 0.5 factor
+# JDFTx spin matrix is <1|pauli|2> without 0.5 factor
+S = 0.5 * np.fromfile(dir_s+"totalE.S",np.complex128).reshape(nk_s,3,nb_s,nb_s).swapaxes(2,3) # from Fortran to C
 Bmag = Bmag / 2.3505175675871e5 # convert to atomic unit
 
 f_de = open("energy_change_Bext.out", "w")
@@ -85,11 +86,11 @@ f_AM_diag.write('#Band range: %4s %4s\n' % (bstart_g, bend_g))
 s_dir = ['x','y','z']
 
 for idir in range(3): # loop on x,y,z
-  gs = 2.0023193043625635
   f_AM_diag.write('#Along '+s_dir[idir]+':\n')
   f_de.write('#Along '+s_dir[idir]+':\n')
   
   # Apply a magnetic field (suppose the band ordering is not changed)
+  gs = 2.0023193043625635
   H = 0.5 * Bmag * (L[:,idir] + gs*S[:,idir]) # Total angular momentum
   for ik in range(nk):
     for ib in range(nb_s):
