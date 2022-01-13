@@ -7,9 +7,11 @@ import os
 
 # The script computes orbital angnular momentum matrix L from momentum matrix p and energies computed by JDFTx code
 # and output L to totalE.L.
-# It also computes g factor matrices as g = 2 + L S^-1
-# It also writes diagonal elements of L and g matrices to Ldiag_gdiag.out
-# and matrix elements of g factor for a few bands to gfac_mat.out
+# It also compute g fator related quantities including
+# energy changes of specific bands at different k points induced by B
+# (file energy_change_Bext.out)
+# and xpectation values of L, S and L+gs*S with gs=2.0023 along x,y,z
+# (file angular_momenta_diag.out)
 
 # Input paramters
 dir_p = "./" # directory having totalE.momenta with more bands
