@@ -59,7 +59,7 @@ L = np.zeros((nk_s,3,nb_s,nb_s),np.complex128)
 L[:,0] = -1j * (np.einsum("kab,kbc->kac", r[:,1], p[:,2,0:nb_p,0:nb_s]) - np.einsum("kab,kbc->kac", r[:,2], p[:,1,0:nb_p,0:nb_s]))
 L[:,1] = -1j * (np.einsum("kab,kbc->kac", r[:,2], p[:,0,0:nb_p,0:nb_s]) - np.einsum("kab,kbc->kac", r[:,0], p[:,2,0:nb_p,0:nb_s]))
 L[:,2] = -1j * (np.einsum("kab,kbc->kac", r[:,0], p[:,1,0:nb_p,0:nb_s]) - np.einsum("kab,kbc->kac", r[:,1], p[:,0,0:nb_p,0:nb_s]))
-L.tofile("totalE.L")
+L.swapaxes(2,3).tofile("totalE.L") # from C to Fortran for JDFTx
 
 
 # Analysis g factor
