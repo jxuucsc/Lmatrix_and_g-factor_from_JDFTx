@@ -16,8 +16,9 @@ import os
 # Input paramters
 dir_p = "./" # directory having totalE.momenta with more bands
              # dir_p should also have totalE.eigenvals and totalE.out
-dir_s = "../" # directory having totalE.S with less bands 
+dir_s = "../" # directory having totalE.S with less bands or the same bands as totalE.momenta
               # band number is read from dir_s+'/totalE.out'
+              # dir_s can be the same as dir_p
 bstart_g = 24 # band range for g factor analysis
 bend_g = 28 #
 Bmag = 1 # The magnitude of test magnetic field in Tesla
@@ -59,6 +60,7 @@ L = np.zeros((nk_s,3,nb_s,nb_s),np.complex128)
 L[:,0] = -1j * (np.einsum("kab,kbc->kac", r[:,1], p[:,2,0:nb_p,0:nb_s]) - np.einsum("kab,kbc->kac", r[:,2], p[:,1,0:nb_p,0:nb_s]))
 L[:,1] = -1j * (np.einsum("kab,kbc->kac", r[:,2], p[:,0,0:nb_p,0:nb_s]) - np.einsum("kab,kbc->kac", r[:,0], p[:,2,0:nb_p,0:nb_s]))
 L[:,2] = -1j * (np.einsum("kab,kbc->kac", r[:,0], p[:,1,0:nb_p,0:nb_s]) - np.einsum("kab,kbc->kac", r[:,1], p[:,0,0:nb_p,0:nb_s]))
+L = 0.5*(L + L.swapaxes(2,3).conj())
 L.swapaxes(2,3).tofile("totalE.L") # from C to Fortran for JDFTx
 
 
